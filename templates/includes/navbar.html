@@ -1,8 +1,8 @@
 {% load static %}
 
     <header class="section-header">
-        <nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom">
-        <div class="container">
+        {% comment %} <nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom">
+        <div class="container-fluid">
           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTop4" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
@@ -22,20 +22,20 @@
             </ul> <!-- list-inline //  -->
           </div> <!-- navbar-collapse .// -->
         </div> <!-- container //  -->
-        </nav>
+        </nav> {% endcomment %}
         
         <section class="header-main border-bottom">
-            <div class="container">
+            <div class="container-fluid">
         <div class="row align-items-center">
             <div class="col-lg-2 col-md-3 col-6">
-                <a href="{% url 'home' %}" class="brand-wrap">
-                    <img class="logo" src="{% static './images/logo.png' %}">
+                <a href="{% url 'home' %}" class="brand-wrap" >
+                    <img class="logo" src="{% static './images/watchlogo.jpg' %}" width = '150px' style = "max-height:77px;" >
                 </a> <!-- brand-wrap.// -->
             </div>
             <div class="col-lg col-sm col-md col-6 flex-grow-0">
                 <div class="category-wrap dropdown d-inline-block float-right">
-                    <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown"> 
-                        <i class="fa fa-bars"></i> All category 
+                    <button type="button" class="btn btn-dark dropdown-toggle" data-toggle="dropdown"> 
+                        <i class="fa fa-bars"></i> Category 
                     </button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="{% url 'store' %}">All Products</a>
@@ -45,14 +45,14 @@
                     </div>
                 </div>  <!-- category-wrap.// -->
             </div> <!-- col.// -->
-            <a href="{% url 'store' %}" class="btn btn-outline-primary">Store</a>
+            <a href="{% url 'store' %}" class="btn btn-outline-dark">Store</a>
             <div class="col-lg  col-md-6 col-sm-12 col">
-                <form action="#" class="search">
+                <form action="{% url 'search' %}" class="search" method='GET'>
                     <div class="input-group w-100">
-                        <input type="text" class="form-control" style="width:60%;" placeholder="Search">
+                        <input type="text" class="form-control" style="width:60%;" placeholder="Search" name="keyword">
                         
                         <div class="input-group-append">
-                          <button class="btn btn-primary" type="submit">
+                          <button class="btn btn-dark" type="submit">
                             <i class="fa fa-search"></i>
                           </button>
                         </div>
@@ -68,9 +68,9 @@
                                     <a href="./register.html"> Register</a>
                                 </div>
                             </div>
-                            <a href="./cart.html" class="widget-header pl-3 ml-3">
+                            <a href="{% url 'cart' %}" class="widget-header pl-3 ml-3">
                                 <div class="icon icon-sm rounded-circle border"><i class="fa fa-shopping-cart"></i></div>
-                                <span class="badge badge-pill badge-danger notify">0</span>
+                                <span class="badge badge-pill badge-danger notify">{{cart_count}}</span>
                             </a>
                         </div> <!-- widgets-wrap.// -->
                     </div> <!-- col.// -->
