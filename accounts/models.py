@@ -43,7 +43,7 @@ class Account(AbstractBaseUser):
     username  = models.CharField(max_length=50, unique=True)
     email  = models.EmailField(max_length=100, unique=True)
     phone_number  = models.CharField(max_length=50)
-    
+    is_block      = models.BooleanField(default=False)
     #required as these are mandatory for creating custom user model
     
     date_joined = models.DateTimeField(auto_now_add=True)
