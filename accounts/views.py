@@ -1,6 +1,7 @@
-from django.shortcuts import render,redirect
-from .forms import RegistrationForm
-from .models import Account
+from django.shortcuts import render,redirect,get_object_or_404
+from .forms import RegistrationForm,UserForm,UserProfileForm
+from .models import Account,UserProfile
+from orders.models import *
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
@@ -11,12 +12,14 @@ from django.template.loader import render_to_string
 from django.utils.http import urlsafe_base64_encode,urlsafe_base64_decode
 from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
-from django.core.mail import EmailMessage
+from django.core.mail import EmailMessage,send_mail
+
 
 from cart.views import _cart_id
 from cart.models import Cart, CartItem
 
 import requests
+import pyotp
 
 # Create your views here.
 
@@ -33,6 +36,12 @@ def register(request):
             user              = Account.objects.create_user(first_name = first_name, last_name = last_name, email = email, username = username, password = password )
             user.phone_number = phone_number
             user.save()
+            
+            #create user profile
+            profile                 = UserProfile()
+            profile.user_id         = user.id
+            profile.profile_picture = 'default/default-user.png'
+            profile.save()
             
             #user ACTIVATION
             current_site  = get_current_site(request)
@@ -56,11 +65,13 @@ def register(request):
     return render(request, 'accounts/register.html', context)
 
 def login(request):
+    
     if request.method == 'POST':
         email    = request.POST['email']
         password = request.POST['password']
         
         user = auth.authenticate(email=email, password=password)
+        
         
         if user is not None :
                 try:
@@ -130,6 +141,56 @@ def login(request):
             return redirect('login')
     return render(request, 'accounts/login.html')
 
+def otp_login(request):
+    if request.user.is_authenticated: 
+         return redirect('home')
+    else:
+        if request.method=="POST":
+            if Account.objects.filter(email__iexact=request.POST['email']).exists():
+                user   = Account.objects.get(email__iexact=request.POST['email'])
+                secret = pyotp.random_base32()
+                totp   = pyotp.TOTP(secret, interval=600)
+                otp    = totp.now()
+                print(totp.now())
+                try:
+                    send_mail('OTP Login Code', str(otp) ,'milaninja17@gmail.com',[user.email], fail_silently=False)
+                    context={
+                        'user': user
+                    }
+                    red = redirect(f'/otp_verification/{user.id}/{secret}', context)
+                    red.set_cookie("can_otp_enter",True,max_age=600)
+                    return red  
+                except:
+                    messages.error(request,"OTP send failed")
+            else:
+                messages.error(request, "Invalid email")
+
+    return render(request,"accounts/otp_login.html")
+
+def otp_verification(request,id,secret):
+    if request.user.is_authenticated: 
+         return redirect('home')
+    else:
+        if request.method=="POST":
+            totp = pyotp.TOTP(secret, interval=600)
+            print(totp.now())
+            user=Account.objects.get(id=id) 
+            code = request.POST['1'] + request.POST['2'] + request.POST['3'] + request.POST['4'] +request.POST['5'] + request.POST['6']
+            if request.COOKIES.get('can_otp_enter')!=None:
+                if(totp.verify(code)):
+                    if (user.is_verified != True):
+                        user.is_verified = True
+                        user.save()
+                    login(request, user)
+                    red=redirect("home")
+                    red.set_cookie('verified',True)
+                    return red
+                else:
+                    messages.error(request,"wrong otp")
+            else:
+                messages.error(request,"10 minutes passed")    
+    return render(request,"accounts/otp_verification.html")
+
 @login_required(login_url = 'login' )
 def logout(request):
     auth.logout(request)
@@ -155,7 +216,14 @@ def activate(request, uidb64, token):
     
 @login_required(login_url = 'login')
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')
+    orders       = Order.objects.order_by('-created_at').filter(user_id = request.user.id, is_ordered=True)
+    orders_count = orders.count()
+    userprofile  = UserProfile.objects.get(user_id = request.user.id)
+    context = {
+        'orders_count': orders_count,
+        'userprofile' : userprofile,
+    }
+    return render(request, 'accounts/dashboard.html', context)
 
 def forgotPassword(request):
     if request.method == 'POST':
@@ -219,3 +287,74 @@ def resetPassword(request):
         
     else:
         return render(request, 'accounts/resetPassword.html')
+    
+@login_required(login_url='login')   
+def my_orders(request):
+    orders = Order.objects.filter(user = request.user, is_ordered = True).order_by('-created_at')
+    context = {
+        'orders': orders,
+    }
+    return render(request, 'accounts/my_orders.html', context)
+
+@login_required(login_url='login')
+def order_detail(request, order_id):
+    order_detail = OrderProduct.objects.filter(order__order_number=order_id)  #orderproduct referred here in models
+    order = Order.objects.get(order_number=order_id)
+    subtotal = 0
+    for i in order_detail:
+        subtotal += i.product_price * i.quantity
+    # #coupon = CouponDetail.objects.filter(user=request.user)
+    # for i in coupon:
+    #     coupon=i
+    context = {
+        'order_detail': order_detail,
+        'order': order,
+    #     'subtotal': subtotal,
+    #     #'coupon':coupon,
+     }
+    return render(request, 'accounts/order_detail.html', context)
+
+@login_required(login_url='login')
+def edit_profile(request):
+        userprofile = get_object_or_404(UserProfile, user=request.user)
+        if request.method == 'POST':
+            user_form = UserForm(request.POST, instance=request.user)
+            profile_form = UserProfileForm(
+                request.POST, request.FILES, instance=userprofile)
+            if user_form.is_valid() and profile_form.is_valid():
+                user_form.save()
+                profile_form.save()
+                messages.success(request, 'Your profile has been updated.')
+                return redirect('edit_profile')
+        else:
+            user_form = UserForm(instance=request.user)
+            profile_form = UserProfileForm(instance=userprofile)
+        context = {
+            'user_form': user_form,
+            'profile_form': profile_form,
+            'userprofile': userprofile,
+        }
+        return render(request, 'accounts/edit_profile.html', context)
+@login_required(login_url='login')   
+def change_password(request):
+    if request.method == 'POST':
+        current_password = request.POST['current_password']
+        new_password     = request.POST['new_password']
+        confirm_password = request.POST['confirm_password']
+        
+        user = Account.objects.get(username__exact=request.user.username) #in models.py create_user method has username  iexact is case insensitive but exact is exactly ith shouldbe
+        if new_password == confirm_password:
+            success = user.check_password(current_password)
+            if success:
+                user.set_password(new_password)
+                user.save()
+                # auth.logout(request) #by default django will log you out
+                messages.success(request, 'Password updated successfully.')
+                return redirect('change_password')
+            else:
+                messages.error(request, 'Please enter valid current password')
+                return redirect('change_password')
+        else:
+            messages.error(request, 'Password does not match!')
+            return redirect('change_password')
+    return render(request, 'accounts/change_password.html')

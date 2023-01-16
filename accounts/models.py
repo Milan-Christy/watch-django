@@ -70,5 +70,25 @@ class Account(AbstractBaseUser):
     def get_all_permissions(user=None):
         if user.is_superadmin:
             return set()
+        
+class UserProfile(models.Model):
+    user            = models.OneToOneField(Account, on_delete=models.CASCADE) #we want to have only one profile for one person
+    address_line_1  = models.CharField(blank=True, max_length=100)
+    address_line_2  = models.CharField(blank=True, max_length=100)
+    profile_picture = models.ImageField(blank=True, upload_to='userprofile')#inside media folder profilepic is created
+    city            = models.CharField(blank=True, max_length=20)
+    state           = models.CharField(blank=True, max_length=20)
+    country         = models.CharField(blank=True, max_length=20)
+
+    def __str__(self):
+        return self.user.first_name
+
+    def full_address(self):
+        return f'{self.address_line_1} {self.address_line_2}'
     
+class OTP(models.Model):
+    
+    otp = models.CharField(max_length=6)
+    expiration_time = models.DateTimeField()
+    user = models.OneToOneField(Account, on_delete=models.CASCADE)
     
