@@ -31,10 +31,7 @@ class RegistrationForm(forms.ModelForm):
         password             = cleaned_data.get('password')
         confirm_password     = cleaned_data.get('confirm_password')
         
-        # if password < '8':
-        #      raise forms.ValidationError(
-        #         "Password contain atleast 8 character"
-        #     ) 
+       
         
         if password != confirm_password:
             raise forms.ValidationError(
@@ -53,12 +50,22 @@ class UserForm(forms.ModelForm):
             self.fields[field].widget.attrs['class'] = 'form-control'
 
 class UserProfileForm(forms.ModelForm):
-    profile_picture = forms.ImageField(required=False, error_messages = {'invalid':("Image files only")}, widget=forms.FileInput)
+    # profile_picture = forms.ImageField(required=False, error_messages = {'invalid':("Image files only")}, widget=forms.FileInput)
     class Meta:
         model = UserProfile
-        fields = ('address_line_1', 'address_line_2', 'city', 'state', 'country', 'profile_picture')
+        fields = ('address_line_1', 'address_line_2', 'city', 'state', 'country','pincode')
 
     def __init__(self, *args, **kwargs):
         super(UserProfileForm, self).__init__(*args, **kwargs)
+        for field in self.fields:
+            self.fields[field].widget.attrs['class'] = 'form-control'
+            
+class AddressForm(forms.ModelForm):
+    class Meta:
+        model = UserProfile
+        fields = ('address_line_1', 'address_line_2', 'city', 'state', 'country','pincode')
+    
+    def __init__(self, *args, **kwargs):
+        super(AddressForm, self).__init__(*args, **kwargs)
         for field in self.fields:
             self.fields[field].widget.attrs['class'] = 'form-control'

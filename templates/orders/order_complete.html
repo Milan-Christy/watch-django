@@ -24,7 +24,7 @@
                         <!-- Start .row -->
                         <div class="col-lg-6">
                             <!-- col-lg-6 start here -->
-                            <div class="invoice-logo"><img src="{% static '/images/logo.png' %}" alt="Invoice logo"
+                            <div class="invoice-logo"><img src="{% static 'images/watchlogo.png' %}" alt="Invoice logo"
                                     style="max-height: 40px;"></div>
                         </div>
                         <!-- col-lg-6 end here -->
@@ -92,12 +92,12 @@
                                                 <th colspan="2" class="text-right">Tax:</th>
                                                 <th class="text-center">${{order.tax}} USD</th>
                                             </tr>
-                                            {% comment %} {% if coupon.coupon.discount_price %}
+                                             {% if coupon.coupon.discount_price %}
                                             <tr>
                                                 <th colspan="2" class="text-right">Discount:</th>
                                                 <th class="text-center">${{coupon.coupon.discount_price}} USD</th>
                                             </tr>
-                                            {% else %} {% endcomment %}
+                                            {% else %} 
                                             {% endif %}
                                             <tr>
                                                 <th colspan="2" class="text-right">Grand Total:</th>

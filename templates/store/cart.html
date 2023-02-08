@@ -11,9 +11,9 @@
     {% if not cart_items %}
     <!--message-->
         <h2 class="text-center">Your Shopping Cart is Empty</h2>
-        <br>
+        
         <div class="text-center">
-            <a href = "{%% url 'store'}" class="btn btn-primary">Continue Shopping</a>
+            <a href = "{% url 'store' %}" class="btn btn-primary">Continue Shopping</a>
         </div>
     {% else %}
     <div class="row">
@@ -54,7 +54,7 @@
                                 <div class="input-group-prepend">
                                 <a href = "{% url 'remove_cart' cart_item.product.id cart_item.id %}"  class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
                                 </div>
-                                <input type="text" class="form-control"  value="{{ cart_item.quantity }}" />
+                                <input type="text" class="form-control"  value="{{ cart_item.quantity }}" disabled />
                                 <div class="input-group-append">
                                     <form action ="{% url 'add_cart' cart_item.product.id %}" method = "POST">
                                         {% csrf_token %}
@@ -72,7 +72,11 @@
         <td> 
             <div class="price-wrap"> 
                 <var class="price">$ {{ cart_item.sub_total }}</var> 
+                {% if cart_item.product.is_offer%}
+                <small class="text-muted"> ${{ cart_item.product.offered_price }} each </small> 
+                {% else %}
                 <small class="text-muted"> ${{ cart_item.product.price }} each </small> 
+                {% endif %}
             </div> <!-- price-wrap .// -->
         </td>
         <td class="text-right"> 

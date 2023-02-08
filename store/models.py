@@ -1,6 +1,7 @@
 from django.db import models
 from category.models import Category
 from django.urls import reverse
+from accounts.models import Account
 # Create your models here.
 
 class Product(models.Model):
@@ -11,9 +12,12 @@ class Product(models.Model):
         images       = models.ImageField(upload_to='photos/products')
         stock        = models.IntegerField()
         is_available = models.BooleanField(default=True)
-        category     = models.ForeignKey(Category, on_delete=models.CASCADE)
+        category     = models.ForeignKey(Category, on_delete=models.CASCADE)       #if we delete a category all products in the category gets deleted
         created_date = models.DateTimeField(auto_now_add=True)
         modified_date= models.DateTimeField(auto_now=True)
+        offer        = models.FloatField(default=0,null=True,blank=True,)
+        is_offer     =models.BooleanField(default=False)
+        offered_price=models.FloatField(default=0,null=True,blank=True)
         
         def get_url(self):
             return reverse('product_detail', args=[self.category.slug, self.slug])
@@ -54,3 +58,28 @@ class Banner(models.Model):
     
     def __str__(self):
             return self.name
+        
+class ReviewRating(models.Model):
+    product           = models.ForeignKey(Product, on_delete=models.CASCADE)
+    user              = models.ForeignKey(Account, on_delete=models.CASCADE)
+    subject           = models.CharField(max_length=100, blank=True)
+    review            = models.TextField(max_length=500, blank=True)
+    rating            = models.FloatField()
+    ip                = models.CharField(max_length=20, blank=True)
+    status            = models.BooleanField(default=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+    updated_at        = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+            return self.subject
+        
+class ProductGallery(models.Model):
+    product = models.ForeignKey(Product, default = None, on_delete=models.CASCADE)
+    image   = models.ImageField(upload_to='store/products', max_length=255)
+    
+    def __str__(self):
+        return self.product.product_name
+    
+    class Meta:
+        verbose_name        = 'productgallery'
+        verbose_name_plural = 'product gallery'

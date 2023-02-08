@@ -1,7 +1,7 @@
-{% extends 'base.html' %}
+{% extends 'admin/main.html' %}
 {% block title %}OTP Login{% endblock %}
 
-{% block content %}
+{% block body %}
     <main>
         <div class="container">
             <section class="section register min-vh-100 d-flex flex-column align-items-center justify-content-center py-4">
@@ -27,7 +27,7 @@
                                         <h5 class="card-title text-center pb-0 fs-4">Login with Email</h5>
                                         <p class="text-center small">Enter your email address to login</p>
                                     </div>
-                                    <form class="row g-3 needs-validation" method="post" novalidate >
+                                    <form class="row g-3 needs-validation" method="post" novalidate>
                                         {% csrf_token %}
                                         <div class="col-12">
                                             <label for="yourEmail" class="form-label">Email</label>

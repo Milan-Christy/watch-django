@@ -1,0 +1,77 @@
+<div class="my-3">
+    <center><h1 class="my-5">SALES REPORT</h1></center>
+</div>
+<div class="row">
+    <div class="col">
+        <table class="table">
+            <thead style="margin-bottom:25px;">
+                <tr style="margin-left:5px;">
+                    <th scope="col" >#</th>
+                    <th scope="col" >Order Number</th>
+                    <th scope="col" >User</th>
+                    <th></th>
+                    <th scope="col">Total</th>
+                    <th scope="col">Date</th>
+                    
+                    <th scope="col">Payment Method</th>
+                    <th scope="col">Status</th>
+                    <hr>
+                </tr>
+                <br>
+            </thead>
+            {% for order in orders %}
+                <tbody >
+                    <tr style="margin-left:15px;">
+                        <th scope="row" >{{forloop.counter}}</th>
+                        <td>{{ order.order_number}}</td>
+                        <td>{{ order.user.email }}</td>
+                        <td></td>
+                        <td>{{ order.order_total}}</td>
+                        <td style="margin-right:10px;">{{ order.created_at}}
+
+                        </td>
+                        {% if order.payment.payment_method%}
+                            <td>{{ order.payment.payment_method}}</td>
+                        {%else%}
+                            <td>NIL</td>
+                        {% endif%}
+
+                        <td>
+                            {% if order.status == "Placed" %}
+                                <span class="p-1 mb-2 bg-danger text-white rounded">{{ order.status }}</span>
+                            {% elif order.status == "Delivered" %}
+                            <span class="p-1 mb-2 bg-secondary text-white rounded">{{ order.status }}</span>
+                            {% elif order.status == "Cancelled" %}
+                                <span class="p-1 mb-2 bg-primary text-white rounded">{{ order.status }}</span>
+                            {% else %}
+                                <span class="p-1 mb-2 bg-success text-white rounded">{{ order.status }}</span>
+                            {% endif %}
+                        </td> 
+                    </tr>
+                    
+                    {% empty %}
+                        <tr class="text-center">
+                            <td colspan="8">There are no Record Found!</td>
+                        </tr>
+                </tbody>
+            {% endfor%}
+        </table>
+        <nav aria-label="Page navigation example">
+            <ul class="pagination justify-content-center">
+                {% if orders.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ orders.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% for i in orders.paginator.page_range %}
+                    {% if orders.number == i %}
+                        <li class="page-item active "><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                    {% else %}
+                        <li class="page-item"><a class="page-link" href="?page={{ i }}">{{ i }}</a></li>
+                    {% endif %}
+                {% endfor %}
+                {% if orders.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ orders.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+</div>

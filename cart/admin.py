@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Cart, CartItem
+from .models import Cart, CartItem, Coupon, UsedCoupon
 # Register your models here.
 
 class CartAdmin(admin.ModelAdmin):
@@ -7,6 +7,13 @@ class CartAdmin(admin.ModelAdmin):
     
 class CartItemAdmin(admin.ModelAdmin):
     list_display = ('product', 'cart', 'quantity', 'is_active')
+    
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ['code','amount']
+    search_fields = ['code']
+
+admin.site.register(Coupon, CouponAdmin)
+admin.site.register(UsedCoupon)
 
 admin.site.register(Cart, CartAdmin)
 admin.site.register(CartItem, CartItemAdmin)

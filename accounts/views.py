@@ -1,6 +1,6 @@
 from django.shortcuts import render,redirect,get_object_or_404
 from .forms import RegistrationForm,UserForm,UserProfileForm
-from .models import Account,UserProfile
+from .models import Account,UserProfile,OTP
 from orders.models import *
 from django.contrib import messages,auth
 from django.contrib.auth.decorators import login_required
@@ -18,9 +18,19 @@ from django.core.mail import EmailMessage,send_mail
 from cart.views import _cart_id
 from cart.models import Cart, CartItem
 
+# from mixins import MessaHandler
+import random, string
+from django.contrib.auth import login
+
 import requests
 import pyotp
+from django.utils import timezone
 
+from xhtml2pdf import pisa
+import xlwt
+from io import BytesIO
+from datetime import datetime
+from django.template.loader import get_template
 # Create your views here.
 
 def register(request):
@@ -64,19 +74,33 @@ def register(request):
     }
     return render(request, 'accounts/register.html', context)
 
-def login(request):
+def login_user(request):
     
     if request.method == 'POST':
         email    = request.POST['email']
         password = request.POST['password']
         
-        user = auth.authenticate(email=email, password=password)
+        # phone_number =request.POST.get('phone_number')
+        # profile      =Profile.objects.filter(phone_number = phone_number)
+        # if not profile.exists():
+        #     return redirect('/register/')
         
+        # profile[0].otp = random.randint(1000 , 9999)
+        # profile[0].save()
+        # message_handler = MessaHandler(phone_number, profile[0].otp).send_otp_on_phone()
         
-        if user is not None :
+        # return redirect(f'/otp/{profile[0].uid}')
+            
+        
+        user   = auth.authenticate(email=email, password=password)
+        account=Account.objects.get(email=email)
+        if account.is_block:
+            messages.error(request, 'User is blocked')
+            return redirect('login')
+        if user is not None :                                                                         #to assign guests cart to loginned user
                 try:
                     
-                    cart                        = Cart.objects.get(cart_id = _cart_id(request))
+                    cart                        = Cart.objects.get(cart_id = _cart_id(request))                     
                     is_cart_item_exists         = CartItem.objects.filter(cart = cart).exists()
                 
                     if is_cart_item_exists:
@@ -120,7 +144,7 @@ def login(request):
                     pass
                 auth.login(request, user)
                 messages.success(request, 'You are now logged in.')
-                url  =  request.META.get('HTTP_REFERER')
+                url  =  request.META.get('HTTP_REFERER')                   #it will store the previous url where you came 
                 try:
                     query = requests.utils.urlparse(url).query
                     print('query ->', query)#next=/cart/checkout/
@@ -133,7 +157,7 @@ def login(request):
                         return redirect(nextpage)
                         
                 except:
-                    return redirect('dashboard')
+                    return redirect('home')
                     
            
         else:
@@ -141,55 +165,61 @@ def login(request):
             return redirect('login')
     return render(request, 'accounts/login.html')
 
+
 def otp_login(request):
-    if request.user.is_authenticated: 
-         return redirect('home')
+    if request.user.is_authenticated:
+        return redirect('home')
     else:
-        if request.method=="POST":
+        if request.method == 'POST':
             if Account.objects.filter(email__iexact=request.POST['email']).exists():
-                user   = Account.objects.get(email__iexact=request.POST['email'])
-                secret = pyotp.random_base32()
-                totp   = pyotp.TOTP(secret, interval=600)
-                otp    = totp.now()
-                print(totp.now())
+                email=request.POST['email']
+                print(email)
+                user = Account.objects.filter(email=email).first()
+                otp  = generate_otp()
+                print(otp)
+                expiration_time = timezone.now() + timezone.timedelta(minutes=5)
+                print(user)
+                #print(OTP.objects.create(otp=otp, expiration_time=expiration_time, user=user))
+                OTP.objects.create(otp=otp, expiration_time=expiration_time, user=user)
                 try:
-                    send_mail('OTP Login Code', str(otp) ,'milaninja17@gmail.com',[user.email], fail_silently=False)
-                    context={
-                        'user': user
-                    }
-                    red = redirect(f'/otp_verification/{user.id}/{secret}', context)
-                    red.set_cookie("can_otp_enter",True,max_age=600)
-                    return red  
+                    send_mail(
+                    'OTP for Signup Verification',
+                    'Your OTP is {}. It will expire in 3 minutes.'.format(otp),
+                    'mithuncy65@gmail.com',
+                    [user.email],
+                    fail_silently=False,
+                    )
+                    return redirect('verify_otp')
                 except:
                     messages.error(request,"OTP send failed")
             else:
-                messages.error(request, "Invalid email")
+                messages.error(request,"Invalid email")
+    return render(request, 'accounts/otp_login.html')
 
-    return render(request,"accounts/otp_login.html")
-
-def otp_verification(request,id,secret):
+def verify_otp(request):
     if request.user.is_authenticated: 
          return redirect('home')
     else:
-        if request.method=="POST":
-            totp = pyotp.TOTP(secret, interval=600)
-            print(totp.now())
-            user=Account.objects.get(id=id) 
-            code = request.POST['1'] + request.POST['2'] + request.POST['3'] + request.POST['4'] +request.POST['5'] + request.POST['6']
-            if request.COOKIES.get('can_otp_enter')!=None:
-                if(totp.verify(code)):
-                    if (user.is_verified != True):
-                        user.is_verified = True
-                        user.save()
-                    login(request, user)
-                    red=redirect("home")
-                    red.set_cookie('verified',True)
-                    return red
-                else:
-                    messages.error(request,"wrong otp")
-            else:
-                messages.error(request,"10 minutes passed")    
-    return render(request,"accounts/otp_verification.html")
+        if request.method == 'POST':
+            otp = request.POST.get('otp')
+            print(otp)
+            try:
+                otp_obj = OTP.objects.get(otp=otp, expiration_time__gt=timezone.now())
+                user    = otp_obj.user
+                print(user)
+      
+    
+                login(request, user)
+                return redirect('home') 
+            except OTP.DoesNotExist:
+                return render(request, "accounts/verify_otp.html", {'error': 'Invalid or expired OTP'})
+    return render(request, "accounts/verify_otp.html")
+
+
+def generate_otp():
+    return ''.join(random.choices(string.digits, k=6))
+
+
 
 @login_required(login_url = 'login' )
 def logout(request):
@@ -218,10 +248,10 @@ def activate(request, uidb64, token):
 def dashboard(request):
     orders       = Order.objects.order_by('-created_at').filter(user_id = request.user.id, is_ordered=True)
     orders_count = orders.count()
-    userprofile  = UserProfile.objects.get(user_id = request.user.id)
+    #userprofile  = UserProfile.objects.filter(user_id = request.user.id)
     context = {
         'orders_count': orders_count,
-        'userprofile' : userprofile,
+        
     }
     return render(request, 'accounts/dashboard.html', context)
 
@@ -316,23 +346,23 @@ def order_detail(request, order_id):
 
 @login_required(login_url='login')
 def edit_profile(request):
-        userprofile = get_object_or_404(UserProfile, user=request.user)
+        #userprofile = get_object_or_404(UserProfile, user=request.user)
         if request.method == 'POST':
             user_form = UserForm(request.POST, instance=request.user)
-            profile_form = UserProfileForm(
-                request.POST, request.FILES, instance=userprofile)
-            if user_form.is_valid() and profile_form.is_valid():
+            # profile_form = UserProfileForm(
+            #     request.POST, request.FILES, instance=userprofile)
+            if user_form.is_valid() :
                 user_form.save()
-                profile_form.save()
+                # profile_form.save()
                 messages.success(request, 'Your profile has been updated.')
                 return redirect('edit_profile')
         else:
             user_form = UserForm(instance=request.user)
-            profile_form = UserProfileForm(instance=userprofile)
+            # profile_form = UserProfileForm(instance=userprofile)
         context = {
             'user_form': user_form,
-            'profile_form': profile_form,
-            'userprofile': userprofile,
+            # 'profile_form': profile_form,
+            'userprofile': user_form,
         }
         return render(request, 'accounts/edit_profile.html', context)
 @login_required(login_url='login')   
@@ -358,3 +388,26 @@ def change_password(request):
             messages.error(request, 'Password does not match!')
             return redirect('change_password')
     return render(request, 'accounts/change_password.html')
+def order_history(request):
+    order = Order.objects.all().order_by('-created_at')
+    context={
+        'order':order,
+    }
+    return render(request,'order_de.html',context)
+def sales_report(request):
+    order = Order.objects.all().order_by('-created_at')
+    now=datetime.today()
+    data={
+        'orders': order,
+   }
+    response = HttpResponse(content_type='application/pdf')
+    filename = "Report"+str(now)+ ".pdf"
+    content = "attachment; filename="+filename
+    response['Content-Disposition'] = content
+    template = get_template("order_de.html")
+    html = template.render(data)
+    result = BytesIO()
+    pdf = pisa.pisaDocument( BytesIO(html.encode("ISO-8859-1")), result)
+    if not pdf.err:
+        return HttpResponse(result.getvalue(), content_type='application/pdf')
+    return response

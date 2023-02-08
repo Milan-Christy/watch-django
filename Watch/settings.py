@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,10 +21,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-nkgz(8#9ub(6cc*ynr92fccjrtw#^931^6+i!2=_%__4&#7zo('
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG',default=True, cast=bool) #True
 
 ALLOWED_HOSTS = []
 
@@ -43,6 +44,8 @@ INSTALLED_APPS = [
     'store',
     'cart',
     'orders',
+    'charts',
+    
 ]
 
 MIDDLEWARE = [
@@ -53,7 +56,12 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django_session_timeout.middleware.SessionTimeoutMiddleware',
 ]
+
+SESSION_EXPIRE_SECONDS = 36000000  #1Hour
+SESSION_EXPIRE_AFTER_LAST_ACTIVITY = True
+SESSION_TIMEOUT_REDIRECT = 'accounts/login'
 
 ROOT_URLCONF = 'Watch.urls'
 
@@ -144,14 +152,43 @@ MESSAGE_TAGS = {
 
 # SMTP CONFIGURATION
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'milaninja17@gmail.com'
-EMAIL_HOST_PASSWORD = 'yvuefqkxcxjnzbds'
-EMAIL_USE_TLS = True
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+JAZZMIN_SETTINGS={
+    "site_title":"HUBLOT",
+    "site_header": "HUBLOT",
+    "site_brand": "Administration",
+    #"site_logo": "images/watchlogo.png",
+    "welcome_sign": "Welcome to the Admin Page",
+    #"login_logo": "images/watchlogo.jpg",
+    #"login_logo_dark": "images/icons/logo-02.png",   
+    
+    "icons": {
+        "accounts.account": "fas fa-user",
+        "accounts.userprofile": "fas fa-address-card",
+
+        'orders.OrderProduct': 'fas fa-industry',
+        'orders.order': 'fa fa-receipt',
+        'orders.Payment':'fa fa-credit-card',
+
+        'category.category':'fa fa-edit',
+
+        'store.ProductGallery':'fa fa-image',
+        'store.Product':'fa fa-shopping-basket',
+        'store.Variation':'fa fa-rss',
+        
+        'carts.Cart':'fa fa-shopping-cart',
+        'carts.CartItem':'fa fa-cart-plus',
+    },
+}

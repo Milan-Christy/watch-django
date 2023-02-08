@@ -1,12 +1,13 @@
 from django.urls import path
 from . import views
-
+from django.conf.urls.static import static
+from django.conf import settings
 
 urlpatterns = [
     path('register/', views.register, name='register'),
-    path('login/', views.login, name='login'),
+    path('login/', views.login_user, name='login'),
     path('logout/', views.logout, name='logout'),
-    path('dashboard/', views.dashboard, name="dashboard"),
+    path('dashboard/', views.dashboard, name='dashboard'),
     path('',views.dashboard, name='dashboard'),
     
     path('activate/<uidb64>/<token>/',views.activate, name = 'activate'),
@@ -19,6 +20,12 @@ urlpatterns = [
     path('change_password/',views.change_password, name='change_password'),
     path('order_detail/<int:order_id>/',views.order_detail, name='order_detail'),
     
+    path('verify_otp/', views.verify_otp, name='verify_otp'),
     path('otp_login/', views.otp_login, name='otp_login'),
-    path('otp_verification/<str:id>/<str:secret>', views.otp_verification, name='otp_verification'),
-]
+    
+    path('sales_report/', views.sales_report, name="sales_report"),
+    
+    #path('otp_login/', views.otp_login, name='otp_login'),
+    #path('otp_verification/<str:id>/<str:secret>', views.otp_verification, name='otp_verification'),
+]+static(settings.MEDIA_URL, document_root = settings.MEDIA_ROOT)
+

@@ -4,9 +4,12 @@ from django.urls import reverse
 
 class Category(models.Model):
     category_name = models.CharField(max_length=50, unique=True)
-    slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField(max_length=255, blank=True)
-    cat_image = models.ImageField(upload_to='photos/categories/', blank=True)
+    slug          = models.SlugField(max_length=100, unique=True)
+    description   = models.TextField(max_length=255, blank=True)
+    cat_image     = models.ImageField(upload_to='photos/categories/', blank=True)
+    offer        = models.FloatField(default=0,null=True,blank=True,)
+    is_offer     =models.BooleanField(default=False)
+    cat_offered_price=models.FloatField(default=0,null=True,blank=True)
     
     class Meta:
         verbose_name = 'category'

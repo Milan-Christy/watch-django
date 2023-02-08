@@ -17,3 +17,34 @@
 		</section>
 	</div><!-- //container -->
 </footer>
+
+<!-- ========================= FOOTER END // ========================= -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+	$(document).ready(function () {
+		$('.thumb a').click(function (e) {
+			e.preventDefault();
+			$('.mainImage img').attr('src', $(this).attr("href"));
+		})
+	})
+</script>
+     
+        <script>
+            $(document).ready(function() {
+                $('#search-button').click(function() {
+                  $.ajax({
+                    url: '/search/',
+                    data: {
+                      'query': $('#query').val()
+                    },
+                    dataType: 'json',
+                    success: function(data) {
+                      $('#results').empty();
+                      $.each(data.results, function(index, product) {
+                        $('#results').append('<li>' + product.product_name + '</li>');
+                      });
+                    }
+                  });
+                });
+              });
+            </script>    

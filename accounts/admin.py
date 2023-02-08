@@ -9,14 +9,15 @@ class AccountAdmin(BaseUserAdmin):
     list_display      = ('email', 'username', 'phone_number', 'date_joined', 'last_login', 'is_active', 'is_block')
     filter_horizontal = ()
     list_filter       = ()
-    fieldsets = ()
+    fieldsets         = ()
     ordering          = ('-date_joined',)
-    readonly_fields = ('last_login', 'date_joined')
+    readonly_fields = ('last_login', 'date_joined','email', 'phone_number','first_name','last_name','password','username')
     
 class UserProfileAdmin(admin.ModelAdmin):
-    def thumbnail(self, object):
-        return format_html('<img sr"{}" width = "30" style="border-radius:50%;">'.format(object.profile_picture.url))
-    thumbnail.short_description = 'Profile Picture'
-    list_display = ('thumbnail', 'user', 'city', 'state', 'country')
+    # def thumbnail(self, object):
+    #     return format_html('<img src = "{}" width = "30" style="border-radius:50%;">'.format(object.profile_picture.url))
+    # thumbnail.short_description = 'Profile Picture'
+    list_display = ( 'user', 'city', 'state', 'country')
+    readonly_fields = ( 'user', 'city', 'state', 'country','address_line_1','address_line_2')
 admin.site.register(Account,AccountAdmin )
 admin.site.register(UserProfile, UserProfileAdmin)

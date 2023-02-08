@@ -9,11 +9,17 @@ class OrderProductInline(admin.TabularInline):
     extra = 0 #otherwise django shows 3 extra rows we dont need it
 
 class OrderAdmin(admin.ModelAdmin):
-    list_display = ['order_number', 'full_name', 'phone', 'email', 'city', 'order_total', 'tax', 'status', 'is_ordered', 'created_at']
+    list_display = ['order_number', 'full_name', 'order_total', 'tax', 'status', 'is_ordered', 'created_at']
     list_filter = ['status', 'is_ordered']
-    search_fields = ['order_number', 'first_name', 'last_name', 'phone', 'email']
+    list_editable = ['status']
+    fields =['status',]
+    search_fields = ['order_number', 'last_name', 'phone', 'email']
     list_per_page = 10
     inlines = [OrderProductInline]
+    
+# class PaymentAdmin(admin.ModelAdmin):
+#     list_display= ['user', 'payment_id', 'payment_method', 'amount_paid', 'status', 'created_at', ]
+#     search_fields= ['payment_id', 'payment_method', 'status',]
     
 admin.site.register(Payment)
 admin.site.register(Order, OrderAdmin)
