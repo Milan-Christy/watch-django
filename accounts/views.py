@@ -395,19 +395,33 @@ def order_history(request):
     }
     return render(request,'order_de.html',context)
 def sales_report(request):
-    order = Order.objects.all().order_by('-created_at')
-    now=datetime.today()
-    data={
-        'orders': order,
-   }
-    response = HttpResponse(content_type='application/pdf')
-    filename = "Report"+str(now)+ ".pdf"
-    content = "attachment; filename="+filename
-    response['Content-Disposition'] = content
-    template = get_template("order_de.html")
-    html = template.render(data)
-    result = BytesIO()
-    pdf = pisa.pisaDocument( BytesIO(html.encode("ISO-8859-1")), result)
-    if not pdf.err:
-        return HttpResponse(result.getvalue(), content_type='application/pdf')
-    return response
+    if request.method == 'POST':
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        order = Order.objects.all()
+        print(start_date)
+        
+        if start_date and end_date:
+            print(start_date)
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            order = order.order_by('-created_at').filter(created_at__range=[start_date, end_date])
+        else:
+            order = Order.objects.all().order_by('-created_at')
+        now=datetime.today()
+        data={
+            'orders': order,
+    }
+        response = HttpResponse(content_type='application/pdf')
+        filename = "Report"+str(now)+ ".pdf"
+        content = "attachment; filename="+filename
+        response['Content-Disposition'] = content
+        template = get_template("order_de.html")
+        html = template.render(data)
+        result = BytesIO()
+        pdf = pisa.pisaDocument( BytesIO(html.encode("ISO-8859-1")), result)
+        if not pdf.err:
+            return HttpResponse(result.getvalue(), content_type='application/pdf')
+        return response
+    else:
+        return redirect('order_detail')

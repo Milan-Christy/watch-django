@@ -38,8 +38,14 @@
             </div>
         </form>
         <div>
-            <a href="{% url 'sales_report' %}"  class="btn btn-primary mt-4">Generate PDF</a>
-        </div>
+            <form  method="POST"  action="{% url 'sales_report'%}" >
+                {% csrf_token %}
+                    <label for="start_date" >Start Date:</label>
+                    <input type="date" id="start_date" class="date " name="start_date"><br/>
+                    <label for="end_date" >End Date:</label>
+                    <input type="date" id="end_date" class="date" name="end_date">
+                <button type="submit" formtarget="_blank" class="btn btn-outline-danger "><i class="fas fa-file-export"></i> Sales Report</button>
+            </form>        </div>
     </div>
     <div id="editor"></div>
     <div class="row" id="graph">

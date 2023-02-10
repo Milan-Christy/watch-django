@@ -45,7 +45,7 @@
                 </div> <!-- card-body.// -->
             </div>
         </article> <!-- filter-group  .// -->
-        <article class="filter-group">
+        {% comment %} <article class="filter-group">
             <header class="card-header">
                 <a href="#" data-toggle="collapse" data-target="#collapse_4" aria-expanded="true" class="">
                     <i class="icon-control fa fa-chevron-down"></i>
@@ -75,7 +75,7 @@
                   </label>
             </div><!-- card-body.// -->
             </div>
-        </article> <!-- filter-group .// -->
+        </article> <!-- filter-group .// --> {% endcomment %}
         
         <article class="filter-group">
             <header class="card-header">
@@ -85,36 +85,38 @@
                 </a>
             </header>
             <div class="filter-content collapse show" id="collapse_3" style="">
-                <div class="card-body">
-                    
-                    <form method="get">
-                        <div class="form-row">
-                          <div class="form-group col-md-6">
-                            <label>Min</label>
-                            <!-- <input class="form-control" placeholder="$0" type="number"> -->
-                            <select class="mr-2 form-control" name="price_min">
-                              <option value="0">$0</option>
-                              <option value="50">$50</option>
-                              <option value="100">$100</option>
-                              <option value="150">$150</option>
-                              <option value="200">$200</option>
-                              <option value="500">$500</option>
-                              <option value="1000">$1000</option>
-                            </select>
-                          </div>
-                          <div class="form-group text-right col-md-6" >
-                            <label>Max</label>
-                            <select class="mr-2 form-control" name="price_max">
-                              <option value="50">$50</option>
-                              <option value="100">$100</option>
-                              <option value="150">$150</option>
-                              <option value="200">$200</option>
-                              <option value="500">$500</option>
-                              <option value="1000">$1000</option>
-                              <option value="2000">$2000+</option>
-                            </select>
-                          </div>
-                        </div>
+              <div class="card-body">
+              <form method="get">
+                <div class="form-row">
+                  <div class="form-group col-md-6">
+                    <label>Min</label>
+                    <!-- <input class="form-control" placeholder="$0" type="number"> -->
+                    <select class="mr-2 form-control" name="price_min" value="{{price_min}}">
+                      <option value="0" {% if price_min == '0' %} selected {% endif %}>$0</option>
+                      <option value="50" {% if price_min == '50' %} selected {% endif %}>$50</option>
+                      <option value="100" {% if price_min == '100' %} selected {% endif %}>$100</option>
+                      <option value="150" {% if price_min == '150' %} selected {% endif %}>$150</option>
+                      <option value="200" {% if price_min == '200' %} selected {% endif %}>$200</option>
+                      <option value="500" {% if price_min == '500' %} selected {% endif %}>$500</option>
+                      <option value="1000" {% if price_min == '1000' %} selected {% endif %}>$1000</option> 
+                      {% comment %} {% for option in options%}
+                      <option value="{{option.value}}" {% if option.value == value %}selected{% endif %}>{{option.display}}</option>
+                      {% endfor %} {% endcomment %}
+                    </select>
+                  </div>
+                  <div class="form-group text-right col-md-6" >
+                    <label>Max</label>
+                    <select class="mr-2 form-control" name="price_max" value="{{price_max}}">
+                      <option value="50" {% if price_max == '50' %} selected {% endif %}>$50</option>
+                      <option value="100" {% if price_max == '100' %} selected {% endif %}>$100</option>
+                      <option value="150" {% if price_max == '150' %} selected {% endif %}>$150</option>
+                      <option value="200" {% if price_max == '200' %} selected {% endif %}>$200</option>
+                      <option value="500" {% if price_max == '500' %} selected {% endif %}>$500</option>
+                      <option value="1000" {% if price_max == '1000' %} selected {% endif %}>$1000</option>
+                      <option value="2000" {% if price_max == '2000' %} selected {% endif %}>$2000+</option>
+                    </select>
+                  </div>
+                </div>
                         <!-- form-row.// -->
                         <button button="submit" name="Filter" class="btn btn-block btn-dark mt-4">Apply</button>
                       </form>
@@ -162,45 +164,7 @@
           </div>
         </div>
 
-        <nav class="mt-4" aria-label="Page navigation sample">
-        {% if products.has_other_pages %}
-          <ul class="pagination">
-          {% if products.has_previous %}
-            <li class="page-item">
-              <a
-                class="page-link"
-                href="?page={{products.previous_page_number}}"
-                >Previous</a
-              >
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <a class="page-link" href="#">Previous</a>
-            </li>
-          {% endif %}
-          {% for i in products.paginator.page_range %} 
-          {% if products.number == i %}
-            <li class="page-item"><a class="page-link" href="#">{{i}}</a></li>
-          {% else %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{i}}">{{i}}</a>
-            </li>
-          {% endif %} 
-          {% endfor%} 
-          {% if products.has_next %}
-            <li class="page-item">
-              <a class="page-link" href="?page={{products.next_page_number}}"
-                >Next</a
-              >
-            </li>
-          {% else %}
-            <li class="page-item disabled">
-              <a class="page-link" href="#">Next</a>
-            </li>
-          {% endif %}
-          </ul>
-          {% endif %}
-        </nav>
+      
       </main>
 
 

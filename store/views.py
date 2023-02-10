@@ -36,18 +36,16 @@ def store(request, category_slug=None):
         paged_products= paginator.get_page(page)
         product_count = products.count()
     products = Product.objects.all().filter(is_available=True)
-    if price_min:
-        prod = products.filter(price__gte=price_min)
+    if price_min and price_max:
+        prod = products.filter(price__gte=price_min,price__lte=price_max)
         product_count = prod.count()
         print(product_count)
-    if price_max:
-        prod = products.filter(price__lte=price_max)
-        product_count = prod.count()
-        print(product_count)
-    
+
     context = {
         
         'prod':prod,
+        'price_min':price_min,
+        'price_max':price_max,
         'products': paged_products,
         'product_count': product_count,
     }

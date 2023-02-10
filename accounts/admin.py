@@ -2,6 +2,8 @@ from django.contrib import admin
 from .models import Account,UserProfile
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
+from django.contrib.auth.models import Group
+
 # Register your models here.
 
 class AccountAdmin(BaseUserAdmin):
@@ -21,3 +23,4 @@ class UserProfileAdmin(admin.ModelAdmin):
     readonly_fields = ( 'user', 'city', 'state', 'country','address_line_1','address_line_2')
 admin.site.register(Account,AccountAdmin )
 admin.site.register(UserProfile, UserProfileAdmin)
+admin.site.unregister(Group)
