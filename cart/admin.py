@@ -13,3 +13,4 @@ class CouponAdmin(admin.ModelAdmin):
     search_fields = ['code']
 
 admin.site.register(Coupon, CouponAdmin)
+admin.site.register(Cart,CartAdmin)

@@ -150,16 +150,16 @@ def place_order(request,total=0,quantity =0,order=None,coupon_obj=None):
     #     else:
     #         return redirect('checkout')
     current_user = request.user
-    cart_item = CartItem.objects.filter(user=current_user)
+    cart_items = CartItem.objects.filter(user=current_user)
     carts=Cart.objects.filter(cart_id=_cart_id(request)).first()
     cart=CartItem.objects.get(user=current_user,cart=carts)
-    cart_count = cart_item.count()
+    cart_count = cart_items.count()
     if cart_count <= 0:
         return redirect('store')
     data = Order()
     tax=0
     grand_total=0
-    for cart_item in cart_item:
+    for cart_item in cart_items:
         print(cart_item.quantity)
         #total+=(cart_item.product.price * cart_item.quantity)
         quantity+= cart_item.quantity
@@ -212,7 +212,8 @@ def place_order(request,total=0,quantity =0,order=None,coupon_obj=None):
             #address = Address.objects.get(user_id=request.user.id)
         context ={
             'order':order,
-            'cart_items':cart_item,
+            'cart_items':cart_items,
+            # 'cart_items':cart,
             'total':total,
             'cart':cart,
             'tax':tax , 
@@ -314,9 +315,9 @@ def cod(request,order_number):
         product.save()
 
     # Clear cart
-    cart = Cart.objects.get(cart_id = _cart_id(request))
-    cart.delete()
     CartItem.objects.filter(user=request.user).delete()
+    cart = Cart.objects.filter(cart_id = _cart_id(request))
+    cart.delete()
     
     
     return render(request, 'orders/cod_success.html')
